@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Protótipo E2 — Busca única na IDE</title>
+<style>
+:root{--bg:#f3f3f1;--surf:#fff;--ink:#222;--mute:#767676;--line:#bdbdb8;--fill:#e6e6e2;--hl:#d9d9d2;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1d1d1c;--surf:#2a2a28;--ink:#eee;--mute:#a0a09a;--line:#55554f;--fill:#3a3a37;--hl:#4a4a45;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#1d1d1c;--surf:#2a2a28;--ink:#eee;--mute:#a0a09a;--line:#55554f;--fill:#3a3a37;--hl:#4a4a45;color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Comic Sans MS","Segoe Print",system-ui,sans-serif;display:flex;flex-direction:column;align-items:center;gap:14px;padding:16px}
+.facil{font-size:13px;color:var(--mute);display:flex;gap:6px;flex-wrap:wrap;align-items:center;justify-content:center}
+.facil button{font:inherit;font-size:13px;border:1px dashed var(--line);background:none;color:var(--ink);padding:3px 9px;border-radius:4px;cursor:pointer}
+.facil button[aria-current="true"]{background:var(--fill);border-style:solid}
+.win{width:100%;max-width:760px;border:2px solid var(--ink);border-radius:6px;background:var(--surf);overflow:hidden}
+.bar{display:flex;gap:6px;align-items:center;padding:6px 10px;border-bottom:2px solid var(--ink);background:var(--fill);font-size:13px}
+.dot{width:10px;height:10px;border:1.5px solid var(--ink);border-radius:50%}
+.body{display:grid;grid-template-columns:130px 1fr;min-height:420px}
+.side{border-right:1.5px solid var(--line);padding:10px;font-size:13px;color:var(--mute)}
+.side div{padding:3px 0}
+.main{padding:16px;overflow-x:auto;min-width:0}
+.box{border:1.5px solid var(--ink);border-radius:4px;padding:10px 12px}
+.ph{background:var(--fill);border:1.5px dashed var(--line);border-radius:4px;color:var(--mute);padding:6px 10px;font-size:13px}
+input[type=text]{width:100%;font:inherit;border:2px solid var(--ink);border-radius:4px;padding:9px 11px;background:var(--surf);color:var(--ink)}
+.btn{font:inherit;border:2px solid var(--ink);background:var(--fill);color:var(--ink);padding:7px 14px;border-radius:4px;cursor:pointer}
+.btn:focus-visible,input:focus-visible,.src:focus-visible,.facil button:focus-visible,.lnk:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.lnk{background:none;border:0;font:inherit;color:var(--ink);text-decoration:underline;cursor:pointer;padding:0}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.tag{font-size:12px;border:1.5px solid var(--ink);border-radius:20px;padding:1px 9px}
+.tag.warn{border-style:dashed}
+h2{font-size:17px;margin:0 0 8px}
+ol{margin:6px 0 0;padding-left:22px}
+.src{display:block;width:100%;text-align:left;font:inherit;color:var(--ink);background:var(--surf);border:1.5px solid var(--line);border-radius:4px;padding:8px 10px;margin-top:8px;cursor:pointer}
+.src:hover{border-color:var(--ink)}
+.hl{background:var(--hl);padding:1px 3px}
+pre{margin:8px 0;background:var(--fill);padding:8px 10px;border-radius:4px;overflow-x:auto;font:13px/1.4 ui-monospace,monospace}
+.scr{display:none}.scr.on{display:block}
+@media (max-width:560px){.body{grid-template-columns:1fr}.side{display:none}}
+</style>
+</head>
+<body>
+<div class="facil" aria-label="Navegação do facilitador">Facilitador:
+<button data-go="1">1 Busca</button><button data-go="2">2 Resposta</button><button data-go="3">3 Fonte</button><button data-go="4">4 Sem resultado</button>
+</div>
+
+<div class="win">
+  <div class="bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span>&nbsp; IDE — projeto-pagamentos</div>
+  <div class="body">
+    <div class="side"><div>▸ src</div><div>▸ tests</div><div>▸ infra</div><div>README.md</div></div>
+    <div class="main">
+
+      <section class="scr on" id="s1" aria-label="Tela 1: busca">
+        <div class="ph">[ editor de código ]</div>
+        <h2 style="margin-top:18px">Buscar em Git, tarefas, wiki e chat</h2>
+        <form class="row" id="f" style="flex-wrap:nowrap">
+          <input type="text" id="q" placeholder="Digite o que você precisa encontrar" aria-label="Busca">
+          <button class="btn" type="submit">Buscar</button>
+        </form>
+        <p style="color:var(--mute);font-size:13px">Uma busca só: Git · Jira · Confluence · chat da equipe</p>
+      </section>
+
+      <section class="scr" id="s2" aria-label="Tela 2: resposta">
+        <div class="row" style="margin-bottom:10px"><button class="lnk" data-go="1">← Nova busca</button><span class="ph" id="eco" style="flex:1"></span></div>
+        <div class="box">
+          <div class="row"><h2 style="margin:0">Procedimento de deploy na homologação</h2><span class="tag">Atual · 2 dias</span></div>
+          <ol>
+            <li>Abrir o PR de release e aguardar o pipeline passar.</li>
+            <li>Rodar o job <code>deploy-hml</code> no CI.</li>
+            <li>Conferir o health check antes de avisar o time.</li>
+          </ol>
+          <p style="margin:10px 0 0;font-size:13px"><span class="tag warn">Atenção</span> A página antiga da wiki diverge deste procedimento.</p>
+        </div>
+        <div style="margin-top:12px;font-size:13px;color:var(--mute)">Fontes (clique para conferir):</div>
+        <button class="src" data-go="3"><b>README do repositório</b> · atualizado há 2 dias <span class="tag">usada na resposta</span></button>
+        <button class="src" data-go="3"><b>Confluence: Deploy (antiga)</b> · atualizada há 8 meses <span class="tag warn">desatualizada</span></button>
+        <div class="row" style="margin-top:12px;font-size:13px"><button class="lnk" data-go="4">Isso não responde minha dúvida</button></div>
+      </section>
+
+      <section class="scr" id="s3" aria-label="Tela 3: fonte aberta">
+        <div class="row" style="margin-bottom:10px"><button class="lnk" data-go="2">← Voltar à resposta</button></div>
+        <div class="box">
+          <div class="row"><h2 style="margin:0">README do repositório</h2><span class="tag">atualizado há 2 dias</span></div>
+          <p style="color:var(--mute);font-size:13px;margin:4px 0 8px">Última edição por um colega do time · commit nº do histórico</p>
+          <p>…o ambiente de homologação é publicado pelo CI.</p>
+          <p class="hl">Para publicar, abra o PR de release e rode o job <code>deploy-hml</code>. Depois confira o health check.</p>
+          <pre>$ gh workflow run deploy-hml</pre>
+          <p>…não execute scripts manuais no servidor.</p>
+        </div>
+        <div class="row" style="margin-top:12px"><button class="btn" type="button" data-go="2">Entendi, voltar</button><button class="lnk" type="button">Abrir no original ↗</button></div>
+      </section>
+
+      <section class="scr" id="s4" aria-label="Tela 4: sem resultado ou sem acesso">
+        <div class="row" style="margin-bottom:10px"><button class="lnk" data-go="1">← Nova busca</button></div>
+        <div class="box">
+          <h2>Nada encontrado nas fontes que você acessa</h2>
+          <p>Não achei uma resposta confiável, então não vou arriscar uma. Tente:</p>
+          <ul><li>usar outras palavras (ex.: “deploy”, “homologação”)</li><li>buscar só no projeto atual</li></ul>
+        </div>
+        <div class="box" style="margin-top:12px">
+          <b>Pode estar fora do seu acesso</b>
+          <p style="margin:4px 0 8px;font-size:14px">Alguns documentos de outros projetos ou clientes exigem permissão.</p>
+          <div class="row"><button class="btn" type="button" id="pedir">Pedir acesso ao responsável</button><span id="ok" class="tag" hidden>Pedido enviado</span></div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const sc=[...document.querySelectorAll('.scr')];
+function go(n){
+  sc.forEach((s,i)=>s.classList.toggle('on',i===n-1));
+  document.querySelectorAll('.facil button').forEach(b=>b.setAttribute('aria-current',b.dataset.go==n));
+  window.scrollTo(0,0);
+}
+document.addEventListener('click',e=>{const t=e.target.closest('[data-go]');if(t)go(+t.dataset.go)});
+document.getElementById('f').addEventListener('submit',e=>{
+  e.preventDefault();
+  const v=document.getElementById('q').value.trim();
+  if(!v)return;
+  document.getElementById('eco').textContent='Busca: '+v;
+  go(/deploy|homolog|public|release/i.test(v)?2:4);
+});
+document.getElementById('pedir').addEventListener('click',()=>{document.getElementById('ok').hidden=false});
+go(1);
+</script>
+</body>
+</html>
